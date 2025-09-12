@@ -17,7 +17,7 @@ import PyPDF2
 
 # ------BASICS------
 
-def TakeInput() -> (tuple[str, ...] | str):
+def TakeInput() -> (list[str]):
     """
     This function opens the system's file manager for the user to select the desired pdf files.
     
@@ -31,7 +31,7 @@ def TakeInput() -> (tuple[str, ...] | str):
     file_names = filedialog.askopenfilenames(title='Please select pdf files to merge.')
     root.destroy()
     
-    return file_names
+    return list(file_names)
     
 def PdfMerger(pdfs: tuple[str, ...], destination: str) -> None:
     """
@@ -63,19 +63,26 @@ class DisplayFrame(CTkFrame):
         self.label = CTkLabel(self, text="The selected the pdf files will appear here.", font=("Ariel", 18))
         self.label.pack(pady=20)
 
-    def update_label(self, new_text: tuple[str]) -> None:
+    def update_label(self, new_text: tuple[str], ext: bool = False) -> None:
         """
         Update the label in this frame with new text.
         
         Args:
             new_text (tuple[str]): The list of file locations
         """
-        fls = []    # file names
-        for fl in new_text:
-            # strip the file names from the full path for clear display
-            fls.append(fl.split('/')[-1])
-            
-        self.label.configure(text=fls)
+        if not ext:
+            fls = []    # file names
+            for fl in new_text:
+                # strip the file names from the full path for clear display
+                fls.append(fl.split('/')[-1])
+            self.label.configure(text=fls)
+        
+        else:
+            fls = []
+            fls.append(self.label)
+            for fl in new_text:
+                fls.append(fl.split('/')[-1])
+            self.label.configure(text=fls)
 
 class TitleFrame(CTkFrame):
     """
@@ -98,7 +105,9 @@ class OptionsFrame(CTkFrame):
     """
     def __init__(self, master):
         super().__init__(master)
-        self.storage = ()
+        self.storage = []
+        
+        # TODO: hower over color
         
         # select input button
         input_button = CTkButton(self,text="Select files",font=("Ariel",20),
@@ -106,7 +115,7 @@ class OptionsFrame(CTkFrame):
         input_button.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
         # add button (for additional files)
         add_button = CTkButton(self,text="Add more files",font=("Ariel",20),
-                                fg_color="#0058B5", command=self.input_button_callback)
+                                fg_color="#517FB0", command=self.add_button_callback)
         add_button.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="w")
         # merger button
         merger_button = CTkButton(self,text="Merge",
@@ -122,15 +131,15 @@ class OptionsFrame(CTkFrame):
         """
         
         self.storage = TakeInput()
-        self.display_frame.update_label(self.storage)
+        self.display_frame.update_label(self.storage, ext = True)
         
     def add_button_callback(self):
         """
-        Callback to print a message on the adjacent frame i.e.
-        print out the names of the selected files.
+        Callback to extend a message on the adjacent frame i.e.
+        print out the names of the newly selected files.
         """
         
-        self.storage = TakeInput()
+        self.storage.append(*TakeInput())
         self.display_frame.update_label(self.storage)
     # TODO: Add button for "Add" if any is already selected
     
